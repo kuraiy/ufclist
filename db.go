@@ -1,5 +1,7 @@
 package main
 
-func dbConnect() {
+import "fmt"
 
+func dbConnect() {
+	fmt.Println()
 }
