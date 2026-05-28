@@ -24,11 +24,3 @@ WHERE id = ?;
 -- name: DeleteFighter :exec
 DELETE FROM fighters
 WHERE id = ?;
-
--- -- name: UpdateFighter :one
--- UPDATE fighters
--- set name = ?,
--- age = ?,
--- nickname = ?
--- WHERE id = ?
--- RETURNING *;
