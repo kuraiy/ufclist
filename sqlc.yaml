@@ -7,3 +7,6 @@ sql:
       go:
         package: "ufclist"
         out: "ufclist"
+        overrides:
+          - column: "fighters.age"
+            go_type: "uint8"

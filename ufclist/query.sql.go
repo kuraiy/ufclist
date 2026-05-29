@@ -21,7 +21,7 @@ RETURNING id, name, age, nickname
 
 type CreateFighterParams struct {
 	Name     string
-	Age      int64
+	Age      uint8
 	Nickname sql.NullString
 }
 
@@ -42,7 +42,7 @@ DELETE FROM fighters
 WHERE id = ?
 `
 
-func (q *Queries) DeleteFighter(ctx context.Context, id int64) error {
+func (q *Queries) DeleteFighter(ctx context.Context, id interface{}) error {
 	_, err := q.db.ExecContext(ctx, deleteFighter, id)
 	return err
 }
@@ -52,7 +52,7 @@ SELECT id, name, age, nickname FROM fighters
 WHERE id = ? LIMIT 1
 `
 
-func (q *Queries) GetFighter(ctx context.Context, id int64) (Fighter, error) {
+func (q *Queries) GetFighter(ctx context.Context, id interface{}) (Fighter, error) {
 	row := q.db.QueryRowContext(ctx, getFighter, id)
 	var i Fighter
 	err := row.Scan(
@@ -107,9 +107,9 @@ WHERE id = ?
 
 type UpdateFighterParams struct {
 	Name     string
-	Age      int64
+	Age      uint8
 	Nickname sql.NullString
-	ID       int64
+	ID       interface{}
 }
 
 func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) error {

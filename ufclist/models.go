@@ -9,8 +9,8 @@ import (
 )
 
 type Fighter struct {
-	ID       int64
+	ID       interface{}
 	Name     string
-	Age      int64
+	Age      uint8
 	Nickname sql.NullString
 }
