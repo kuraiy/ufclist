@@ -5,8 +5,8 @@ sql:
     schema : "schema.sql"
     gen:
       go:
-        package: "ufclist"
-        out: "ufclist"
+        package: "database"
+        out: "gen"
         overrides:
           - column: "fighters.age"
             go_type: "uint8"
