@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS fighters (
-    id INTEGER PRIMARY KEY AUTO INCREMENT NOT NULL,
-    name text NOT NULL,
-    age INTEGER NOT NULL,
-    nickname text
-)
