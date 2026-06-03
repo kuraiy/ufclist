@@ -42,7 +42,7 @@ DELETE FROM fighters
 WHERE id = ?
 `
 
-func (q *Queries) DeleteFighter(ctx context.Context, id interface{}) error {
+func (q *Queries) DeleteFighter(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteFighter, id)
 	return err
 }
@@ -52,7 +52,7 @@ SELECT id, name, age, nickname FROM fighters
 WHERE id = ? LIMIT 1
 `
 
-func (q *Queries) GetFighter(ctx context.Context, id interface{}) (Fighter, error) {
+func (q *Queries) GetFighter(ctx context.Context, id int64) (Fighter, error) {
 	row := q.db.QueryRowContext(ctx, getFighter, id)
 	var i Fighter
 	err := row.Scan(
@@ -109,7 +109,7 @@ type UpdateFighterParams struct {
 	Name     string
 	Age      uint8
 	Nickname sql.NullString
-	ID       interface{}
+	ID       int64
 }
 
 func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) error {
