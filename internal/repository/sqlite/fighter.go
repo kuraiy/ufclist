@@ -30,7 +30,7 @@ func (r *FighterRepository) Create(ctx context.Context, f domain.Fighter) (domai
 	}
 
 	return domain.Fighter{
-		ID:       row.ID.(int64),
+		ID:       row.ID,
 		Name:     row.Name,
 		Nickname: row.Nickname.String,
 		Age:      row.Age,
@@ -45,7 +45,7 @@ func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fight
 	}
 
 	return domain.Fighter{
-		ID:       row.ID.(int64),
+		ID:       row.ID,
 		Name:     row.Name,
 		Age:      row.Age,
 		Nickname: row.Nickname.String,
@@ -63,7 +63,7 @@ func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) 
 
 	for i, row := range rows {
 		fighters[i] = domain.Fighter{
-			ID:       row.ID.(int64),
+			ID:       row.ID,
 			Name:     row.Name,
 			Age:      row.Age,
 			Nickname: row.Nickname.String,
