@@ -1,10 +1,11 @@
-package sqlite
+package repository
 
 import (
 	"context"
 	"database/sql"
 	gen "server/gen"
 	"server/internal/domain"
+	"server/internal/mapper"
 )
 
 type FighterRepository struct {
@@ -15,26 +16,14 @@ func New(db *sql.DB) *FighterRepository {
 	return &FighterRepository{queries: gen.New(db)}
 }
 
-func (r *FighterRepository) Create(ctx context.Context, f domain.Fighter) (domain.Fighter, error) {
-	row, err := r.queries.CreateFighter(ctx, gen.CreateFighterParams{
-		Name: f.Name,
-		Nickname: sql.NullString{
-			String: f.Nickname,
-			Valid:  true,
-		},
-		Age: f.Age,
-	})
+func (r *FighterRepository) Create(ctx context.Context, p gen.CreateFighterParams) (domain.Fighter, error) {
+	row, err := r.queries.CreateFighter(ctx, p)
 
 	if err != nil {
 		return domain.Fighter{}, err
 	}
 
-	return domain.Fighter{
-		ID:       row.ID,
-		Name:     row.Name,
-		Nickname: row.Nickname.String,
-		Age:      row.Age,
-	}, nil
+	return mapper.MapRow(row), nil
 }
 
 func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fighter, error) {
@@ -44,12 +33,7 @@ func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fight
 		return domain.Fighter{}, err
 	}
 
-	return domain.Fighter{
-		ID:       row.ID,
-		Name:     row.Name,
-		Age:      row.Age,
-		Nickname: row.Nickname.String,
-	}, nil
+	return mapper.MapRow(row), nil
 }
 
 func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) {
@@ -62,16 +46,13 @@ func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) 
 	fighters := make([]domain.Fighter, len(rows))
 
 	for i, row := range rows {
-		fighters[i] = domain.Fighter{
-			ID:       row.ID,
-			Name:     row.Name,
-			Age:      row.Age,
-			Nickname: row.Nickname.String,
-		}
+		fighters[i] = mapper.MapRow(row)
 	}
 
 	return fighters, nil
 }
+
+// todo implement update
 
 func (r *FighterRepository) Delete(ctx context.Context, id int64) error {
 	return r.queries.DeleteFighter(ctx, id)

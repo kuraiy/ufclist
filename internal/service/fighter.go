@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	gen "server/gen"
 	"server/internal/domain"
 )
 
@@ -13,7 +14,7 @@ func New(repo domain.FighterRepository) *FighterService {
 	return &FighterService{repo: repo}
 }
 
-func (s *FighterService) Create(ctx context.Context, f domain.Fighter) (domain.Fighter, error) {
+func (s *FighterService) Create(ctx context.Context, f gen.CreateFighterParams) (domain.Fighter, error) {
 	return s.repo.Create(ctx, f)
 }
 
@@ -24,3 +25,5 @@ func (s *FighterService) GetByID(ctx context.Context, id int64) (domain.Fighter,
 func (s *FighterService) List(ctx context.Context) ([]domain.Fighter, error) {
 	return s.repo.List(ctx)
 }
+
+// todo write update, delete

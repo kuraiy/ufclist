@@ -8,18 +8,18 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func writeJSON(w http.ResponseWriter, status int, data any) {
+func readBody(r *http.Request, dst any) error {
+	return json.NewDecoder(r.Body).Decode(dst)
+}
+
+func writeResponse(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
 }
 
-func readJSON(r *http.Request, dst any) error {
-	return json.NewDecoder(r.Body).Decode(dst)
-}
-
 func writeError(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]string{"error": msg})
+	writeResponse(w, status, map[string]string{"error": msg})
 }
 
 func formatValidationErrors(err error) map[string]string {

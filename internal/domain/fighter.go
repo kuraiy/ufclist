@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	gen "server/gen"
+)
 
 type Fighter struct {
 	ID       int64
@@ -10,14 +13,14 @@ type Fighter struct {
 }
 
 type FighterRepository interface {
-	Create(ctx context.Context, f Fighter) (Fighter, error)
+	Create(ctx context.Context, f gen.CreateFighterParams) (Fighter, error)
 	GetByID(ctx context.Context, id int64) (Fighter, error)
 	List(ctx context.Context) ([]Fighter, error)
 	Delete(ctx context.Context, id int64) error
 }
 
 type FighterService interface {
-	Create(ctx context.Context, f Fighter) (Fighter, error)
+	Create(ctx context.Context, f gen.CreateFighterParams) (Fighter, error)
 	GetByID(ctx context.Context, id int64) (Fighter, error)
 	List(ctx context.Context) ([]Fighter, error)
 }

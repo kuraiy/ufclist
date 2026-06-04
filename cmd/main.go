@@ -6,35 +6,57 @@ import (
 	"net/http"
 	"os"
 	"server/internal/handler"
-	"server/internal/repository/sqlite"
+	"server/internal/repository"
 	"server/internal/service"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	godotenv.Load()
+	loadEnvVars()
+
+	db := connectToDb()
+
+	frepo := repository.New(db)
+	fsvc := service.New(frepo)
+	v := validator.New()
+	fh := handler.New(fsvc, v)
+
+	startServer(fh)
+}
+
+func loadEnvVars() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func connectToDb() *sql.DB {
 	dbPath := os.Getenv("DB_PATH")
-	port := os.Getenv("PORT")
 
 	db, err := sql.Open("sqlite3", dbPath)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer db.Close()
 
-	repo := sqlite.New(db)
-	svc := service.New(repo)
-	handler := handler.New(svc)
+	return db
+}
+
+func startServer(fh *handler.FighterHandler) {
+	port := os.Getenv("PORT")
 
 	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux)
+	fh.RegisterRoutes(mux)
 
-	log.Printf("Listening on %s\n", port)
 	if err := http.ListenAndServe(port, mux); err != nil {
 		log.Fatal(err)
 	}
 
+	log.Printf("Listening on %s\n", port)
 }
