@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	gen "server/gen"
 	"server/internal/domain"
+	"server/internal/mapper"
 )
 
 type FighterRepository struct {
@@ -29,12 +30,7 @@ func (r *FighterRepository) Create(ctx context.Context, f domain.Fighter) (domai
 		return domain.Fighter{}, err
 	}
 
-	return domain.Fighter{
-		ID:       row.ID,
-		Name:     row.Name,
-		Nickname: row.Nickname.String,
-		Age:      row.Age,
-	}, nil
+	return mapper.MapRow(row), nil
 }
 
 func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fighter, error) {
@@ -44,12 +40,7 @@ func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fight
 		return domain.Fighter{}, err
 	}
 
-	return domain.Fighter{
-		ID:       row.ID,
-		Name:     row.Name,
-		Age:      row.Age,
-		Nickname: row.Nickname.String,
-	}, nil
+	return mapper.MapRow(row), nil
 }
 
 func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) {
