@@ -16,7 +16,7 @@ INSERT INTO fighters (
 ) VALUES (
   ?, ?, ?
 )
-RETURNING id, name, age, nickname
+RETURNING id, name, age, nickname, activated
 `
 
 type CreateFighterParams struct {
@@ -33,12 +33,14 @@ func (q *Queries) CreateFighter(ctx context.Context, arg CreateFighterParams) (F
 		&i.Name,
 		&i.Age,
 		&i.Nickname,
+		&i.Activated,
 	)
 	return i, err
 }
 
 const deleteFighter = `-- name: DeleteFighter :exec
-DELETE FROM fighters
+UPDATE fighters
+set activated = 0
 WHERE id = ?
 `
 
@@ -48,7 +50,7 @@ func (q *Queries) DeleteFighter(ctx context.Context, id int64) error {
 }
 
 const getFighter = `-- name: GetFighter :one
-SELECT id, name, age, nickname FROM fighters
+SELECT id, name, age, nickname, activated FROM fighters
 WHERE id = ? LIMIT 1
 `
 
@@ -60,12 +62,14 @@ func (q *Queries) GetFighter(ctx context.Context, id int64) (Fighter, error) {
 		&i.Name,
 		&i.Age,
 		&i.Nickname,
+		&i.Activated,
 	)
 	return i, err
 }
 
 const listFighters = `-- name: ListFighters :many
-SELECT id, name, age, nickname FROM fighters
+SELECT id, name, age, nickname, activated FROM fighters  
+WHERE activated = 1 
 ORDER BY name
 `
 
@@ -83,6 +87,7 @@ func (q *Queries) ListFighters(ctx context.Context) ([]Fighter, error) {
 			&i.Name,
 			&i.Age,
 			&i.Nickname,
+			&i.Activated,
 		); err != nil {
 			return nil, err
 		}
