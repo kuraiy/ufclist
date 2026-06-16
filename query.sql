@@ -3,7 +3,8 @@ SELECT * FROM fighters
 WHERE id = ? LIMIT 1;
 
 -- name: ListFighters :many
-SELECT * FROM fighters
+SELECT * FROM fighters  
+WHERE activated = 1 
 ORDER BY name;
 
 -- name: CreateFighter :one
@@ -22,5 +23,6 @@ nickname = ?
 WHERE id = ?;
 
 -- name: DeleteFighter :exec
-DELETE FROM fighters
+UPDATE fighters
+set activated = 0
 WHERE id = ?;
