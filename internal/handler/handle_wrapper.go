@@ -35,7 +35,7 @@ func (h *FighterHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /fighters", wrap(h, decodeJSON[CreateFighterRequest], h.Create, http.StatusCreated))
 	mux.HandleFunc("GET /fighters", wrap(h, decodeEmpty, h.List, http.StatusOK))
 	mux.HandleFunc("GET /fighters/{id}", wrap(h, decodeID, h.GetByID, http.StatusOK))
-	mux.HandleFunc("DELETE /fighters/{id}", h.Delete)
+	mux.HandleFunc("DELETE /fighters/{id}", wrap(h, decodeID, h.Delete, http.StatusOK))
 }
 
 func wrap[Req, Resp any](
@@ -110,4 +110,6 @@ func (h *FighterHandler) List(ctx context.Context, _ struct{}) ([]domain.Fighter
 	return h.svc.List(ctx)
 }
 
-func (h *FighterHandler) Delete(w http.ResponseWriter, r *http.Request) {}
+func (h *FighterHandler) Delete(ctx context.Context, id int64) (struct{}, error) {
+	return h.svc.Delete(ctx, id)
+}
