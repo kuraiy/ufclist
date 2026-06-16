@@ -1,0 +1,2 @@
+-- +goose Up
+ALTER TABLE fighters ADD COLUMN activated BOOLEAN NOT NULL DEFAULT 1;
