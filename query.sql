@@ -15,14 +15,14 @@ INSERT INTO fighters (
 )
 RETURNING *;
 
--- name: UpdateFighter :exec
+-- name: UpdateFighter :execresult
 UPDATE fighters
 set name = ?,
 age = ?,
 nickname = ?
 WHERE id = ?;
 
--- name: DeleteFighter :exec
+-- name: DeleteFighter :execresult
 UPDATE fighters
 set activated = 0
 WHERE id = ?;
