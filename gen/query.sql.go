@@ -38,15 +38,14 @@ func (q *Queries) CreateFighter(ctx context.Context, arg CreateFighterParams) (F
 	return i, err
 }
 
-const deleteFighter = `-- name: DeleteFighter :exec
+const deleteFighter = `-- name: DeleteFighter :execresult
 UPDATE fighters
 set activated = 0
 WHERE id = ?
 `
 
-func (q *Queries) DeleteFighter(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteFighter, id)
-	return err
+func (q *Queries) DeleteFighter(ctx context.Context, id int64) (sql.Result, error) {
+	return q.db.ExecContext(ctx, deleteFighter, id)
 }
 
 const getFighter = `-- name: GetFighter :one
@@ -102,7 +101,7 @@ func (q *Queries) ListFighters(ctx context.Context) ([]Fighter, error) {
 	return items, nil
 }
 
-const updateFighter = `-- name: UpdateFighter :exec
+const updateFighter = `-- name: UpdateFighter :execresult
 UPDATE fighters
 set name = ?,
 age = ?,
@@ -117,12 +116,11 @@ type UpdateFighterParams struct {
 	ID       int64
 }
 
-func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) error {
-	_, err := q.db.ExecContext(ctx, updateFighter,
+func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateFighter,
 		arg.Name,
 		arg.Age,
 		arg.Nickname,
 		arg.ID,
 	)
-	return err
 }
