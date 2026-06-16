@@ -64,6 +64,6 @@ func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) 
 	return fighters, nil
 }
 
-func (r *FighterRepository) Delete(ctx context.Context, id int64) error {
+func (r *FighterRepository) Delete(ctx context.Context, id int64) (sql.Result, error) {
 	return r.queries.DeleteFighter(ctx, id)
 }
