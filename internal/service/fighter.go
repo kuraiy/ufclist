@@ -41,3 +41,23 @@ func (s *FighterService) Delete(ctx context.Context, id int64) (struct{}, error)
 
 	return struct{}{}, nil
 }
+
+func (s *FighterService) Update(ctx context.Context, req domain.UpdateFighterInput) (domain.Fighter, error) {
+	fighter, err := s.repo.GetByID(ctx, req.ID)
+
+	if err != nil {
+		return domain.Fighter{}, nil
+	}
+
+	if req.Name != nil {
+		fighter.Name = *req.Name
+	}
+	if req.Age != nil {
+		fighter.Age = *req.Age
+	}
+	if req.Nickname != nil {
+		fighter.Nickname = *req.Nickname
+	}
+
+	return s.repo.Update(ctx, fighter)
+}
