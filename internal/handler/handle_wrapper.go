@@ -36,6 +36,7 @@ func (h *FighterHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /fighters", wrap(h, decodeEmpty, h.List, http.StatusOK))
 	mux.HandleFunc("GET /fighters/{id}", wrap(h, decodeID, h.GetByID, http.StatusOK))
 	mux.HandleFunc("DELETE /fighters/{id}", wrap(h, decodeID, h.Delete, http.StatusOK))
+	mux.HandleFunc("PUT /fighters/{id}", wrap(h, decodeUpdateFighter, h.Update, http.StatusOK))
 }
 
 func wrap[Req, Resp any](
@@ -94,6 +95,22 @@ func decodeEmpty(_ *FighterHandler, _ *http.Request) (struct{}, error) {
 	return struct{}{}, nil
 }
 
+func decodeUpdateFighter(h *FighterHandler, r *http.Request) (domain.UpdateFighterInput, error) {
+	req, err := decodeJSON[domain.UpdateFighterInput](h, r)
+	if err != nil {
+		return domain.UpdateFighterInput{}, err
+	}
+
+	id, err := decodeID(h, r)
+
+	if err != nil {
+		return domain.UpdateFighterInput{}, err
+	}
+
+	req.ID = id
+	return req, nil
+}
+
 func (h *FighterHandler) Create(ctx context.Context, req CreateFighterRequest) (domain.Fighter, error) {
 	return h.svc.Create(ctx, domain.Fighter{
 		Name:     req.Name,
@@ -112,4 +129,8 @@ func (h *FighterHandler) List(ctx context.Context, _ struct{}) ([]domain.Fighter
 
 func (h *FighterHandler) Delete(ctx context.Context, id int64) (struct{}, error) {
 	return h.svc.Delete(ctx, id)
+}
+
+func (h *FighterHandler) Update(ctx context.Context, req domain.UpdateFighterInput) (domain.Fighter, error) {
+	return h.svc.Update(ctx, req)
 }
