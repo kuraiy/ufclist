@@ -15,12 +15,13 @@ INSERT INTO fighters (
 )
 RETURNING *;
 
--- name: UpdateFighter :execresult
+-- name: UpdateFighter :one
 UPDATE fighters
-set name = ?,
-age = ?,
-nickname = ?
-WHERE id = ?;
+SET name     = COALESCE(?, name),
+    age      = COALESCE(?, age),
+    nickname = COALESCE(?, nickname)
+WHERE id = ?
+RETURNING id, name, age, nickname;
 
 -- name: DeleteFighter :execresult
 UPDATE fighters

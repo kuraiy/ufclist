@@ -101,12 +101,13 @@ func (q *Queries) ListFighters(ctx context.Context) ([]Fighter, error) {
 	return items, nil
 }
 
-const updateFighter = `-- name: UpdateFighter :execresult
+const updateFighter = `-- name: UpdateFighter :one
 UPDATE fighters
-set name = ?,
-age = ?,
-nickname = ?
+SET name     = COALESCE(?, name),
+    age      = COALESCE(?, age),
+    nickname = COALESCE(?, nickname)
 WHERE id = ?
+RETURNING id, name, age, nickname
 `
 
 type UpdateFighterParams struct {
@@ -116,11 +117,26 @@ type UpdateFighterParams struct {
 	ID       int64
 }
 
-func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, updateFighter,
+type UpdateFighterRow struct {
+	ID       int64
+	Name     string
+	Age      uint8
+	Nickname sql.NullString
+}
+
+func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) (UpdateFighterRow, error) {
+	row := q.db.QueryRowContext(ctx, updateFighter,
 		arg.Name,
 		arg.Age,
 		arg.Nickname,
 		arg.ID,
 	)
+	var i UpdateFighterRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Age,
+		&i.Nickname,
+	)
+	return i, err
 }
