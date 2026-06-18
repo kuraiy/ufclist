@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"server/internal/handler"
 	"server/internal/repository/sqlite"
 	"server/internal/service"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
@@ -32,9 +36,30 @@ func main() {
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
 
-	log.Printf("Listening on %s\n", port)
-	if err := http.ListenAndServe(port, mux); err != nil {
-		log.Fatal(err)
+	server := &http.Server{
+		Addr:    port,
+		Handler: mux,
 	}
 
+	go func() {
+		log.Printf("Listening on %s\n", port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %v", err)
+		}
+	}()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	<-ctx.Done()
+	log.Println("Shutting down")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Shutdown error: %v", err)
+	}
+
+	log.Println("Server stopped.")
 }
