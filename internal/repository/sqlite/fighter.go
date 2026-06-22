@@ -31,7 +31,7 @@ func (r *FighterRepository) Create(ctx context.Context, f domain.Fighter) (domai
 		return domain.Fighter{}, err
 	}
 
-	return mapper.MapRow(row), nil
+	return mapper.MapFighter(row), nil
 }
 
 func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fighter, error) {
@@ -41,7 +41,7 @@ func (r *FighterRepository) GetByID(ctx context.Context, id int64) (domain.Fight
 		return domain.Fighter{}, err
 	}
 
-	return mapper.MapRow(row), nil
+	return mapper.MapFighterRow(row), nil
 }
 
 func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) {
@@ -51,13 +51,7 @@ func (r *FighterRepository) List(ctx context.Context) ([]domain.Fighter, error) 
 		return nil, err
 	}
 
-	fighters := make([]domain.Fighter, len(rows))
-
-	for i, row := range rows {
-		fighters[i] = mapper.MapRow(row)
-	}
-
-	return fighters, nil
+	return mapper.MapFighterRows(rows), nil
 }
 
 func (r *FighterRepository) Delete(ctx context.Context, id int64) (sql.Result, error) {
