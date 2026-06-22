@@ -31,14 +31,16 @@ func main() {
 
 	repo := sqlite.New(db)
 	svc := service.New(repo)
-	handler := handler.New(svc)
+	fighterHandler := handler.New(svc)
 
 	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux)
+	fighterHandler.RegisterRoutes(mux)
+
+	rl := handler.NewRateLimiter(5, 10)
 
 	server := &http.Server{
 		Addr:    port,
-		Handler: mux,
+		Handler: rl.Middleware(mux),
 	}
 
 	go func() {

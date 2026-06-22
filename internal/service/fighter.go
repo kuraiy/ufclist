@@ -2,13 +2,15 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"server/internal/domain"
+	"strconv"
+	"sync"
 )
 
 type FighterService struct {
-	repo domain.FighterRepository
+	repo  domain.FighterRepository
+	cache sync.Map
 }
 
 func New(repo domain.FighterRepository) *FighterService {
@@ -16,15 +18,44 @@ func New(repo domain.FighterRepository) *FighterService {
 }
 
 func (s *FighterService) Create(ctx context.Context, f domain.Fighter) (domain.Fighter, error) {
-	return s.repo.Create(ctx, f)
+	created, err := s.repo.Create(ctx, f)
+	if err != nil {
+		return created, err
+	}
+
+	s.cache.Delete("all")
+	return created, nil
 }
 
 func (s *FighterService) GetByID(ctx context.Context, id int64) (domain.Fighter, error) {
-	return s.repo.GetByID(ctx, id)
+	key := strconv.FormatInt(id, 10)
+
+	if cached, ok := s.cache.Load(key); ok {
+		return cached.(domain.Fighter), nil
+	}
+
+	fighter, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return fighter, err
+	}
+
+	s.cache.Store(key, fighter)
+	return fighter, nil
 }
 
 func (s *FighterService) List(ctx context.Context) ([]domain.Fighter, error) {
-	return s.repo.List(ctx)
+	if cached, ok := s.cache.Load("all"); ok {
+		return cached.([]domain.Fighter), nil
+	}
+
+	fighters, err := s.repo.List(ctx)
+
+	if err != nil {
+		return fighters, err
+	}
+
+	s.cache.Store("all", fighters)
+	return fighters, nil
 }
 
 func (s *FighterService) Delete(ctx context.Context, id int64) (struct{}, error) {
@@ -34,10 +65,17 @@ func (s *FighterService) Delete(ctx context.Context, id int64) (struct{}, error)
 		return struct{}{}, err
 	}
 
-	if rows, err := result.RowsAffected(); rows != 1 {
-		errMsg := fmt.Sprintf(`Fighter with id:%d is still activated, reason :%s`, id, err.Error())
-		return struct{}{}, errors.New(errMsg)
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return struct{}{}, fmt.Errorf("failed to check rows affected: %w", err)
 	}
+
+	if rows == 0 {
+		return struct{}{}, fmt.Errorf("fighter with id %d not found", id)
+	}
+
+	s.cache.Delete(strconv.FormatInt(id, 10))
+	s.cache.Delete("all")
 
 	return struct{}{}, nil
 }
@@ -46,7 +84,7 @@ func (s *FighterService) Update(ctx context.Context, req domain.UpdateFighterInp
 	fighter, err := s.repo.GetByID(ctx, req.ID)
 
 	if err != nil {
-		return domain.Fighter{}, nil
+		return domain.Fighter{}, err
 	}
 
 	if req.Name != nil {
@@ -59,5 +97,13 @@ func (s *FighterService) Update(ctx context.Context, req domain.UpdateFighterInp
 		fighter.Nickname = *req.Nickname
 	}
 
-	return s.repo.Update(ctx, fighter)
+	updated, err := s.repo.Update(ctx, fighter)
+
+	if err != nil {
+		return updated, err
+	}
+
+	s.cache.Delete(strconv.FormatInt(req.ID, 10))
+	s.cache.Delete("all")
+	return updated, nil
 }
