@@ -6,7 +6,15 @@ package database
 
 import (
 	"database/sql"
+	"time"
 )
+
+type Event struct {
+	ID        int64
+	Name      string
+	EventDate time.Time
+	Location  sql.NullString
+}
 
 type Fighter struct {
 	ID        int64
