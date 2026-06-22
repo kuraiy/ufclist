@@ -1,10 +1,11 @@
 -- name: GetFighter :one
-SELECT * FROM fighters
-WHERE id = ? LIMIT 1;
+SELECT id, name, age, nickname FROM fighters
+WHERE id = ? AND activated = 1
+LIMIT 1;
 
 -- name: ListFighters :many
-SELECT * FROM fighters  
-WHERE activated = 1 
+SELECT id, name, age, nickname FROM fighters
+WHERE activated = 1
 ORDER BY name;
 
 -- name: CreateFighter :one

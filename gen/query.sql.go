@@ -49,44 +49,57 @@ func (q *Queries) DeleteFighter(ctx context.Context, id int64) (sql.Result, erro
 }
 
 const getFighter = `-- name: GetFighter :one
-SELECT id, name, age, nickname, activated FROM fighters
-WHERE id = ? LIMIT 1
+SELECT id, name, age, nickname FROM fighters
+WHERE id = ? AND activated = 1
+LIMIT 1
 `
 
-func (q *Queries) GetFighter(ctx context.Context, id int64) (Fighter, error) {
+type GetFighterRow struct {
+	ID       int64
+	Name     string
+	Age      uint8
+	Nickname sql.NullString
+}
+
+func (q *Queries) GetFighter(ctx context.Context, id int64) (GetFighterRow, error) {
 	row := q.db.QueryRowContext(ctx, getFighter, id)
-	var i Fighter
+	var i GetFighterRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Age,
 		&i.Nickname,
-		&i.Activated,
 	)
 	return i, err
 }
 
 const listFighters = `-- name: ListFighters :many
-SELECT id, name, age, nickname, activated FROM fighters  
-WHERE activated = 1 
+SELECT id, name, age, nickname FROM fighters
+WHERE activated = 1
 ORDER BY name
 `
 
-func (q *Queries) ListFighters(ctx context.Context) ([]Fighter, error) {
+type ListFightersRow struct {
+	ID       int64
+	Name     string
+	Age      uint8
+	Nickname sql.NullString
+}
+
+func (q *Queries) ListFighters(ctx context.Context) ([]ListFightersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listFighters)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Fighter
+	var items []ListFightersRow
 	for rows.Next() {
-		var i Fighter
+		var i ListFightersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Age,
 			&i.Nickname,
-			&i.Activated,
 		); err != nil {
 			return nil, err
 		}
