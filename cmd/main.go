@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	_ = godotenv.Load()
 	dbPath := os.Getenv("DB_PATH")
 	port := os.Getenv("PORT")
 
@@ -27,7 +27,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing db: %v\n", err)
+		}
+	}()
 
 	repo := sqlite.New(db)
 	svc := service.New(repo)
