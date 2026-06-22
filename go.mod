@@ -7,6 +7,7 @@ require github.com/mattn/go-sqlite3 v1.14.44
 require (
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/joho/godotenv v1.5.1
+	golang.org/x/time v0.15.0
 )
 
 require (
