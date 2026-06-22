@@ -1,0 +1,44 @@
+package handler
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/go-playground/validator/v10"
+)
+
+func writeJSON(w http.ResponseWriter, status int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("failed to encode response: %v\n", err)
+	}
+}
+
+func readJSON(r *http.Request, dst any) error {
+	return json.NewDecoder(r.Body).Decode(dst)
+}
+
+func writeError(w http.ResponseWriter, status int, msg string) {
+	writeJSON(w, status, map[string]string{"error": msg})
+}
+
+func formatValidationErrors(err error) map[string]string {
+	errors := make(map[string]string)
+	for _, e := range err.(validator.ValidationErrors) {
+		field := strings.ToLower(e.Field())
+		switch field + "." + e.Tag() {
+		case "age.gte":
+			errors[field] = "age must be at least 18"
+		case "age.lte":
+			errors[field] = "age must be at most 100"
+		case "name.required":
+			errors[field] = "name is required"
+		default:
+			errors[field] = e.Tag()
+		}
+	}
+	return errors
+}

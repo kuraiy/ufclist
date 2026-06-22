@@ -3,7 +3,7 @@
 //   sqlc v1.31.1
 // source: query.sql
 
-package ufclist
+package database
 
 import (
 	"context"
@@ -16,12 +16,12 @@ INSERT INTO fighters (
 ) VALUES (
   ?, ?, ?
 )
-RETURNING id, name, age, nickname
+RETURNING id, name, age, nickname, activated
 `
 
 type CreateFighterParams struct {
 	Name     string
-	Age      int64
+	Age      uint8
 	Nickname sql.NullString
 }
 
@@ -33,28 +33,37 @@ func (q *Queries) CreateFighter(ctx context.Context, arg CreateFighterParams) (F
 		&i.Name,
 		&i.Age,
 		&i.Nickname,
+		&i.Activated,
 	)
 	return i, err
 }
 
-const deleteFighter = `-- name: DeleteFighter :exec
-DELETE FROM fighters
+const deleteFighter = `-- name: DeleteFighter :execresult
+UPDATE fighters
+set activated = 0
 WHERE id = ?
 `
 
-func (q *Queries) DeleteFighter(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteFighter, id)
-	return err
+func (q *Queries) DeleteFighter(ctx context.Context, id int64) (sql.Result, error) {
+	return q.db.ExecContext(ctx, deleteFighter, id)
 }
 
 const getFighter = `-- name: GetFighter :one
 SELECT id, name, age, nickname FROM fighters
-WHERE id = ? LIMIT 1
+WHERE id = ? AND activated = 1
+LIMIT 1
 `
 
-func (q *Queries) GetFighter(ctx context.Context, id int64) (Fighter, error) {
+type GetFighterRow struct {
+	ID       int64
+	Name     string
+	Age      uint8
+	Nickname sql.NullString
+}
+
+func (q *Queries) GetFighter(ctx context.Context, id int64) (GetFighterRow, error) {
 	row := q.db.QueryRowContext(ctx, getFighter, id)
-	var i Fighter
+	var i GetFighterRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -66,18 +75,26 @@ func (q *Queries) GetFighter(ctx context.Context, id int64) (Fighter, error) {
 
 const listFighters = `-- name: ListFighters :many
 SELECT id, name, age, nickname FROM fighters
+WHERE activated = 1
 ORDER BY name
 `
 
-func (q *Queries) ListFighters(ctx context.Context) ([]Fighter, error) {
+type ListFightersRow struct {
+	ID       int64
+	Name     string
+	Age      uint8
+	Nickname sql.NullString
+}
+
+func (q *Queries) ListFighters(ctx context.Context) ([]ListFightersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listFighters)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Fighter
+	var items []ListFightersRow
 	for rows.Next() {
-		var i Fighter
+		var i ListFightersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -97,27 +114,42 @@ func (q *Queries) ListFighters(ctx context.Context) ([]Fighter, error) {
 	return items, nil
 }
 
-const updateFighter = `-- name: UpdateFighter :exec
+const updateFighter = `-- name: UpdateFighter :one
 UPDATE fighters
-set name = ?,
-age = ?,
-nickname = ?
+SET name     = COALESCE(?, name),
+    age      = COALESCE(?, age),
+    nickname = COALESCE(?, nickname)
 WHERE id = ?
+RETURNING id, name, age, nickname
 `
 
 type UpdateFighterParams struct {
 	Name     string
-	Age      int64
+	Age      uint8
 	Nickname sql.NullString
 	ID       int64
 }
 
-func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) error {
-	_, err := q.db.ExecContext(ctx, updateFighter,
+type UpdateFighterRow struct {
+	ID       int64
+	Name     string
+	Age      uint8
+	Nickname sql.NullString
+}
+
+func (q *Queries) UpdateFighter(ctx context.Context, arg UpdateFighterParams) (UpdateFighterRow, error) {
+	row := q.db.QueryRowContext(ctx, updateFighter,
 		arg.Name,
 		arg.Age,
 		arg.Nickname,
 		arg.ID,
 	)
-	return err
+	var i UpdateFighterRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Age,
+		&i.Nickname,
+	)
+	return i, err
 }
